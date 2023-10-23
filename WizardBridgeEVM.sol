@@ -34,7 +34,6 @@ contract WizardBridgeEVM is IBridge, Ownable, ReentrancyGuard, Pausable {
     mapping(bytes => bool) private _usedTxns;
     address private _trustedSigner;
     uint256 private _serviceFee;
-    bytes32 private _isValidTx;
 
     constructor(address trustedSigner, uint256 serviceFee) {
         _trustedSigner = trustedSigner;
@@ -97,17 +96,6 @@ contract WizardBridgeEVM is IBridge, Ownable, ReentrancyGuard, Pausable {
     nonReentrant
     whenNotPaused
     isTrustedSigner(args.txHash, args.txSigned)
-    { // 
-    _isValidTx = keccak256(abi.encodePacked(
-        args.sourceChain,
-        args.token,
-        args.amount,
-        args.receiver,
-        args.wrappedTokenName,
-        args.wrappedTokenSymbol,
-        args.timestamp,
-        args.txHash)
-    );
         require(args.receiver == msg.sender, "Receiver and sender mismatch");
         require(args.amount > 0, "Bad amount");
         require(!_usedTime[args.timestamp], "Error (Proof of Message): Duplicate or already used");
@@ -135,7 +123,7 @@ contract WizardBridgeEVM is IBridge, Ownable, ReentrancyGuard, Pausable {
         address wrappedToken,
         uint256 amount,
         address receiver
-    ) external override payable nonReentrant whenNotPaused {
+    ) external payable override nonReentrant whenNotPaused {
         require(msg.value >= _serviceFee, "Service fee not enough");
         require(receiver == msg.sender, "Receiver and sender mismatch");
         ERC20Burnable token = ERC20Burnable(wrappedToken);
